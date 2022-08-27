@@ -1,0 +1,27 @@
+{
+  "globals": {
+	"startPoint": "2000-01-01T00:00:00",
+	"endPoint": "2020-04-01T23:00:00",
+    "steps": 100,
+	"deltaT": 4,
+	"deltaTUnit": "weeks",
+	"console": true,
+    "output": "csv",
+    "options": {
+      "delimiter": ";",
+      "format": "en-EN"
+    }
+  },
+
+  "agents": [
+    {
+      "name": "Patch",
+      "count": 1,
+	  "file":"Resources/patch_data.csv",
+    },
+	{
+	  "name": "Plant",
+      "count": 1
+	}
+  ]
+}
