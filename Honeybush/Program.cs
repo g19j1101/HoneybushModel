@@ -18,6 +18,8 @@ namespace Honeybush
             description.AddLayer<PatchLayer>();// Register the layer for patch and plant
             description.AddAgent<Patch, PatchLayer>();// Register agent Patch
 			description.AddAgent<Plant, PatchLayer>(); // register agent plant
+			description.AddLayer<PrecipitationLayer>();
+			description.AddAgent<Precipitation, PrecipitationLayer>();
             // scenario definition
             // use config.json that holds the specification of the scenario
             var file = File.ReadAllText("config.json");
@@ -31,7 +33,6 @@ namespace Honeybush
             
             // Feedback to user that simulation run was successful
             Console.WriteLine($"Simulation execution finished after {loopResults.Iterations} steps");
-			
         }
     }
 }

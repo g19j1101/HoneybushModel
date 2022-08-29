@@ -21,7 +21,13 @@ namespace Honeybush.Model
     {
 		[PropertyDescription]
 		public UnregisterAgent UnregisterHandle { get; set; }
-		//public RegisterAgent registerAgentHandle; 
+		
+		[PropertyDescription]
+		public double adult_growth{get;set;}
+		
+		[PropertyDescription]
+		public double seedling_growth{get;set;}
+		
 		public int Age; //@3 years since harvest -> can be harvested 
 		public Position Position { get; set; }
 		public string Stem_Colour, State; 
@@ -68,12 +74,15 @@ namespace Honeybush.Model
 						 // some bushes do live much longer than 10 years
 			{	Die(patch); return;} //avoid further tick if dead 
 			
+			//does the state need to be updated?
+			if (State == "seed" && Age > 5)
+				State = "mature"; 
 			switch(Month)
 			{
 				case 1:
 				case 2:
 				case 3: 
-					Grow();
+					Grow(patch);
 					break;
 				case 4:
 				case 5: 
@@ -122,7 +131,7 @@ namespace Honeybush.Model
 				agent.Age = rand.Next(4, 6); //let it be in a similar range 
 											       //  -> in the tick, harvest/fire data will change it via patch control
 				agent.Height = rand.NextDouble() * (100 - 30) + 30;
-				agent.State = "adult"; 
+				agent.State = "mature"; 
 				agent.Position = Position.CreatePosition(patch.Longitude, patch.Latitude);
 			}).Take(1).First();
 			patch.GetPopulationAltered(1, Patch_ID_plant);
@@ -219,7 +228,7 @@ namespace Honeybush.Model
 				SpawnSeed(patch); 
 		}
 		/*December to March: growth*/
-		private void Grow()
+		private void Grow(Patch patch)
 		{
 			// int growthFactor = precipatation;  // moisture_level;
 			// double growth factor if theres been fire and rainfall
@@ -227,6 +236,20 @@ namespace Honeybush.Model
 			// std : low rainfall, no harvest , no fire 
 			// increase if high rainfall 
 			// Height += growthFactor; 
+			int lastHarvestOrFire = 0; 
+			int rain = 1; //for now -> still need to find a way of incorporating Precipitation agent 
+			if (patch.LastHarvest > patch.LastBurnt)
+				lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter
+			else 
+				lastHarvestOrFire = patch.LastBurnt; // better resprout rate if burnt
+			if (State == "mature")
+			{
+				Height += adult_growth*(rain/(Current_year - lastHarvestOrFire));
+			}
+			else //seedling/seed 
+			{
+				Height += seedling_growth*Height;
+			}
 			
 		}
 		

@@ -27,6 +27,8 @@ namespace Honeybush.Model
 		public IAgentManager AgentManager { get; private set; }
 		public SpatialHashEnvironment<Plant> PlantEnvironment { get; private set; }
 		public GeoHashEnvironment<Patch> PatchEnvironment { get; private set; }
+		public PrecipitationLayer PrecipitationLayer { get; set; }
+		
 		private int Height = 1, Width = 1; 
 		
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle,

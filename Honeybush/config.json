@@ -21,7 +21,22 @@
     },
 	{
 	  "name": "Plant",
-      "count": 1
-	}
+      "count": 1,
+	  "mapping":[
+			{
+				"parameter":"adult_growth",
+				"value":0.07
+			},
+			{
+				"parameter":"seedling_growth",
+				"value":0.2
+			}
+		]
+	},
+	{
+      "name": "Precipitation",
+      "count": 22,
+	  "file":"Resources/zuuranys_rainfall.csv"
+    },
   ]
 }
