@@ -43,6 +43,7 @@ namespace Honeybush.Model
 		
 		private PatchLayer _plants;
 		
+		public PrecipitationLayer _rainfall; 
         public void Init(PatchLayer layer)
         {
 			_plants = layer;
@@ -77,12 +78,15 @@ namespace Honeybush.Model
 			//does the state need to be updated?
 			if (State == "seed" && Age > 5)
 				State = "mature"; 
+			
 			switch(Month)
 			{
 				case 1:
 				case 2:
 				case 3: 
-					Grow(patch);
+					var precipitation = _rainfall.Rainfall.Explore(Position, -1D, 1, agentInEnvironment
+															=> agentInEnvironment.Year == Current_year).FirstOrDefault();
+					Grow(patch, precipitation);
 					break;
 				case 4:
 				case 5: 
@@ -228,7 +232,7 @@ namespace Honeybush.Model
 				SpawnSeed(patch); 
 		}
 		/*December to March: growth*/
-		private void Grow(Patch patch)
+		private void Grow(Patch patch, Precipitation moisture)
 		{
 			// int growthFactor = precipatation;  // moisture_level;
 			// double growth factor if theres been fire and rainfall
@@ -237,7 +241,7 @@ namespace Honeybush.Model
 			// increase if high rainfall 
 			// Height += growthFactor; 
 			int lastHarvestOrFire = 0; 
-			int rain = 1; //for now -> still need to find a way of incorporating Precipitation agent 
+			double rain = moisture.Annual; //for now -> still need to find a way of incorporating Precipitation agent 
 			if (patch.LastHarvest > patch.LastBurnt)
 				lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter
 			else 

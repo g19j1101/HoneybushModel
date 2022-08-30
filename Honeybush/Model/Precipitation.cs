@@ -13,7 +13,7 @@ namespace Honeybush.Model
     ///  A simple agent stub that has an Init() method for initialization and a
     ///  Tick() method for acting in every tick of the simulation.
     /// </summary>
-    public class Precipitation : IAgent<PrecipitationLayer>
+    public class Precipitation : IAgent<PrecipitationLayer>, IPositionable
     {
 		[PropertyDescription]
 		public int Year{get; set;} 
@@ -24,6 +24,7 @@ namespace Honeybush.Model
         public void Init(PrecipitationLayer layer)
         {
             Layer = layer; // store layer for access within agent class
+			//Layer.Rainfall.Insert(this);
         }//intialise method
         
         public void Tick()
@@ -32,7 +33,8 @@ namespace Honeybush.Model
 			//Precipitation agent is just a data holder
         }
 		
-        private PrecipitationLayer Layer { get; set; } // provides access to the main layer of this agent
+        public PrecipitationLayer Layer { get; set; } // provides access to the main layer of this agent
         public Guid ID { get; set; } // identifies the agent
+		public Position Position {get; set;}
     }
 }

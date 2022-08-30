@@ -22,13 +22,14 @@ namespace Honeybush.Model
     public class PrecipitationLayer : AbstractLayer
     {
 		public IAgentManager AgentManager { get; private set; }
+		public GeoHashEnvironment<Precipitation> Rainfall { get; private set; }
 		
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle,
             UnregisterAgent unregisterAgentHandle)
         {
 			
             base.InitLayer(layerInitData, registerAgentHandle, unregisterAgentHandle); // base class requires init, too
-			
+			Rainfall = GeoHashEnvironment<Precipitation>.BuildByBBox( 24.107791,-33.681584, 24.207791, -33.745409, 35.0);
             AgentManager = layerInitData.Container.Resolve<IAgentManager>();
 			AgentManager.Spawn<Precipitation, PrecipitationLayer>().ToList();
             return true;
