@@ -38,15 +38,19 @@ namespace Honeybush.Model
 		
 		public int Patch_ID_plant{get; set;}  //potentiially give by the locality CSV   
 		
-		public int  Tick_counter = 0, Current_year = 2000;
+		public long  Tick_counter = 0, Current_year = 2000;
 		public int Month{get;set;} //only an output for now to see if it's working...it's not
 		
 		private PatchLayer _plants;
+		
+		private ISimulationContext Context; 
 		
 		public PrecipitationLayer _rainfall; 
         public void Init(PatchLayer layer)
         {
 			_plants = layer;
+			Context = _plants.Context;
+			Tick_counter = Context.CurrentTick; 
         }//intialise method? 
 		
         public void Tick()
@@ -58,7 +62,10 @@ namespace Honeybush.Model
 			//decide in every tick if the plant is burnable or harvestable
 			//Harvestable()and Burnable() will probably be public methods that indicate what the behaviour
 			//of the fire and harvestor agent is 
-			
+		
+			DateTime date = (DateTime)Context.CurrentTimePoint; 
+			Month = date.Month; 
+			Current_year = date.Year; 
 			//when start spawing more/1 patch -> put this in a for loop for 37 patches --> ensure all get inialsed
 			if(Tick_counter == 0)
 			{
@@ -68,6 +75,8 @@ namespace Honeybush.Model
 					SpawnAdult(init_patch); //it works!
 				init_patch.havePlants = true; 
 			}
+			
+
 			var patch = _plants.PatchEnvironment.Explore(Position, -1D, 1, agentInEnvironment
 															=> agentInEnvironment.havePlants == true 
 															&& agentInEnvironment.Patch_ID==Patch_ID_plant).FirstOrDefault();
@@ -110,14 +119,9 @@ namespace Honeybush.Model
 			{
 				reduceBiomassAddYield(patch);
 			}
-			Tick_counter++; 
-			if (Tick_counter % 4 == 0)
-				Month++;
-			if (Tick_counter % 52 == 0)
-			{
-				Age++; 
-				Current_year++; 
-			}
+			Tick_counter = Context.CurrentTick; 
+			// if (Tick_counter % 4 == 0)
+				// Month++;
         }
 		
 		private void Die(Patch patch)

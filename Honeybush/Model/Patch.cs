@@ -1,5 +1,6 @@
 using System;
 using Mars.Interfaces.Agents;
+using Mars.Interfaces; 
 using System.Linq;
 using Mars.Common;
 using Mars.Components.Agents; 
@@ -68,6 +69,7 @@ namespace Honeybush.Model
 			//fire and harvest acts upon a patch
 			// crop yield and pop size is detmerined by plant agents
 			//although - will also compare with the average calc eq
+	
 			Crop_YieldB = CalculateCropYieldEq(Patch_Population); 
 			if(HarvestFireYear(Harvest_Data, Current_year))
 				LastHarvest = Current_year;
