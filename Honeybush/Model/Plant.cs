@@ -32,14 +32,16 @@ namespace Honeybush.Model
 		public Position Position { get; set; }
 		public string Stem_Colour, State; 
 		private Random rand = new Random(42);
-		private int Buds, Flowers; 
+		private int Buds = 0, Flowers = 0; 
 		
 		public double Height;
 		
 		public int Patch_ID_plant{get; set;}  //potentiially give by the locality CSV   
 		
-		public long  Tick_counter = 0, Current_year = 2000;
+		public long  Tick_counter = 0;
+		public int Current_year {get; set;}
 		public int Month{get;set;} //only an output for now to see if it's working...it's not
+		//public int count{get; set;}
 		
 		private PatchLayer _plants;
 		
@@ -51,7 +53,11 @@ namespace Honeybush.Model
 			_plants = layer;
 			Context = _plants.Context;
 			Tick_counter = Context.CurrentTick; 
-        }//intialise method? 
+			//count = 0; 
+			DateTime date = (DateTime)Context.CurrentTimePoint;
+			Month = date.Month; 
+			Current_year = date.Year;
+        }//intialise method
 		
         public void Tick()
         {
@@ -62,21 +68,23 @@ namespace Honeybush.Model
 			//decide in every tick if the plant is burnable or harvestable
 			//Harvestable()and Burnable() will probably be public methods that indicate what the behaviour
 			//of the fire and harvestor agent is 
-		
-			DateTime date = (DateTime)Context.CurrentTimePoint; 
+			
+			DateTime date = (DateTime)Context.CurrentTimePoint;
 			Month = date.Month; 
-			Current_year = date.Year; 
+			Current_year = date.Year;
+			int age_inc = 0; 
 			//when start spawing more/1 patch -> put this in a for loop for 37 patches --> ensure all get inialsed
 			if(Tick_counter == 0)
 			{
 				var init_patch = _plants.PatchEnvironment.Explore(Position, -1D, 1, agentInEnvironment
 															=> agentInEnvironment.havePlants == false).FirstOrDefault();
-				for(int i = 0; i < init_patch.Patch_Population; i++)
+				for(int i = 0; i < init_patch.Patch_Population; i++){
 					SpawnAdult(init_patch); //it works!
+				}
 				init_patch.havePlants = true; 
+				//count++; 
 			}
 			
-
 			var patch = _plants.PatchEnvironment.Explore(Position, -1D, 1, agentInEnvironment
 															=> agentInEnvironment.havePlants == true 
 															&& agentInEnvironment.Patch_ID==Patch_ID_plant).FirstOrDefault();
@@ -90,8 +98,11 @@ namespace Honeybush.Model
 			
 			switch(Month)
 			{
+				case 0: 
 				case 1:
+					
 				case 2:
+					
 				case 3: 
 					var precipitation = _rainfall.Rainfall.Explore(Position, -1D, 1, agentInEnvironment
 															=> agentInEnvironment.Year == Current_year).FirstOrDefault();
@@ -111,17 +122,22 @@ namespace Honeybush.Model
 					break;
 				case 12: 
 					Set_Seed(patch);
+					if (age_inc == 0)
+					{
+						Age++; 
+						age_inc++; 
+					}
+					//Grow(patch, precipitation);
 					break;	
 			}	
-			checkHarvestable(patch);
-			bool isHarvestable = Harvestable(patch);
-			if (Harvestable(patch) && Current_year == patch.LastHarvest)
+			checkHarvestable(patch); //every single plant in a patch needs to have done this before moving on
+			
+			if (Harvestable(patch)) //executes when deltaT = 1
 			{
+				patch.test_count++; 
 				reduceBiomassAddYield(patch);
 			}
 			Tick_counter = Context.CurrentTick; 
-			// if (Tick_counter % 4 == 0)
-				// Month++;
         }
 		
 		private void Die(Patch patch)
@@ -160,30 +176,33 @@ namespace Honeybush.Model
 		
 		public void checkHarvestable(Patch patch)
 		{
-			
-			if(Patch_ID_plant == patch.Patch_ID)
-				patch.countAge += Age;
+			patch.countAge += Age;
 			if(Stem_Colour != "green")
 				patch.checkColour += 1; 	
 		}
 		
 		public bool Harvestable(Patch patch)
 		{
-			int aveAge = patch.countAge / patch.Patch_Population; 
-			double percent = 0.75*patch.Patch_Population; 
-			if(patch.checkColour >= Convert.ToInt32(percent) && aveAge >= 4 && Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt>=5)
+			if(Current_year == patch.LastHarvest)
 				return true;
+			else{
+				int aveAge = patch.countAge / patch.Patch_Population; 
+				double percent = 0.75*patch.Patch_Population; 
+				if(patch.checkColour >= Convert.ToInt32(percent) && aveAge >= 4 && Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt>=5)
+					return true;
+			}
 			return false; 
 		} 
 		
 		public void reduceBiomassAddYield(Patch patch)
 		{
-			if (Height > 40.0 && Stem_Colour != "green" && Patch_ID_plant == patch.Patch_ID)
+			if (Height > 40.0 && Stem_Colour != "green")
 			{
 				double reduce = Height - 15.0; //cut above 15cm 
 				Height -= reduce; 
 				patch.Crop_YieldA += (rand.NextDouble()*(10 - 5) + 5) * Height; //cm to grams conversion 
 			}
+			
 		}
 		
 		/*In Bud(), initialse #buds, stem colour + correspond this to height and age -> field assessment
@@ -191,7 +210,8 @@ namespace Honeybush.Model
 		private void getBudsAndColour(string[] colour, int maxBuds)
 		{
 			Buds = rand.Next(0, maxBuds/4); // divide by 4 to disperse budding over 4 months 
-			if (Age > 8) {
+			if (Age > 8) 
+			{
 				Stem_Colour = colour[3]; 
 				Buds -= rand.Next(0, maxBuds);// old therefore will have few buds
 			}
@@ -236,6 +256,7 @@ namespace Honeybush.Model
 				SpawnSeed(patch); 
 		}
 		/*December to March: growth*/
+		/*Source for logic and equation: Lucas et al. */
 		private void Grow(Patch patch, Precipitation moisture)
 		{
 			// int growthFactor = precipatation;  // moisture_level;
@@ -249,22 +270,30 @@ namespace Honeybush.Model
 			if (patch.LastHarvest > patch.LastBurnt)
 				lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter
 			else 
+			{
 				lastHarvestOrFire = patch.LastBurnt; // better resprout rate if burnt
+				adult_growth += 0.2; //adjustment of growth parameter to actuate high resprout rate 
+			}
 			if (State == "mature")
-			{
 				Height += adult_growth*(rain/(Current_year - lastHarvestOrFire));
-			}
 			else //seedling/seed 
-			{
 				Height += seedling_growth*Height;
-			}
-			
 		}
 		
-		// private bool Burnable()
-		// {
-			
-		// }
+		private bool Burnable(Patch patch, Precipitation moisture)
+		{
+			if (Current_year <= 2020)
+			{
+				if(Current_year == patch.LastBurnt)
+					return true; //need to use our history to get timeline correct 
+			}
+			else
+			{
+				if(moisture.Annual < 550.0 && Current_year - patch.LastBurnt >= 4)//very simplistic, I know -- but it's what the data says!
+					return true;
+			}
+			return false; 
+		}
 		
         public Guid ID { get; set; } // identifies the agent
     }

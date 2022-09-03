@@ -43,6 +43,7 @@ namespace Honeybush.Model
 		
 		public double Crop_YieldB{get; set;}// model output, method B is average below
 		
+		public int test_count{get;set;}
 		public bool havePlants = false; //flag for determining if a patch has been intialised with plants yet
 		
 		public int LastHarvest = 0, LastBurnt = 0;
@@ -57,7 +58,8 @@ namespace Honeybush.Model
 			Position = Position.CreateGeoPosition(Longitude, Latitude);
             Layer.PatchEnvironment.Insert(this);
 			Patch_Population = Convert.ToInt32(Area)*GetRandomNumber(42, 800, 3500); //800-3500 plants per hectre 
-			
+			Crop_YieldA = 0;
+			test_count = 0; 
         }//intialise method
         
         public void Tick()
