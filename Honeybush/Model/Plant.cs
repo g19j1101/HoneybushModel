@@ -23,37 +23,36 @@ namespace Honeybush.Model
 		public UnregisterAgent UnregisterHandle { get; set; }
 		
 		[PropertyDescription]
-		public double adult_growth{get;set;}
+		public double adult_growth{get;set;} //growth rate parameter for a mature bush
 		
 		[PropertyDescription]
-		public double seedling_growth{get;set;}
+		public double seedling_growth{get;set;} //growth rate parameter for a seedling 
 		
 		public int Age; //@3 years since harvest -> can be harvested 
 		public Position Position { get; set; }
 		public string Stem_Colour, State; 
-		private Random rand = new Random(42);
+		private Random rand = new Random(42); //seed the randomness 
 		private int Buds = 0, Flowers = 0; 
-		
+		private bool Harvested = false; 
 		public double Height;
 		
-		public int Patch_ID_plant{get; set;}  //potentiially give by the locality CSV   
+		public int Patch_ID_plant;  
 		
 		public long  Tick_counter = 0;
 		public int Current_year {get; set;}
 		public int Month{get;set;} //only an output for now to see if it's working...it's not
-		//public int count{get; set;}
 		
 		private PatchLayer _plants;
 		
 		private ISimulationContext Context; 
 		
-		public PrecipitationLayer _rainfall; 
+		public PrecipitationLayer _rainfall; //dependent on precipatation 
+		
         public void Init(PatchLayer layer)
         {
 			_plants = layer;
 			Context = _plants.Context;
 			Tick_counter = Context.CurrentTick; 
-			//count = 0; 
 			DateTime date = (DateTime)Context.CurrentTimePoint;
 			Month = date.Month; 
 			Current_year = date.Year;
@@ -61,19 +60,15 @@ namespace Honeybush.Model
 		
         public void Tick()
         {
-			
-			
-            //do something in every tick of the simulation
 			//depending on the month, call a phenophase method to update attributes
 			//decide in every tick if the plant is burnable or harvestable
-			//Harvestable()and Burnable() will probably be public methods that indicate what the behaviour
-			//of the fire and harvestor agent is 
+			//affect patch's total population and crop yield 
 			
 			DateTime date = (DateTime)Context.CurrentTimePoint;
 			Month = date.Month; 
 			Current_year = date.Year;
 			int age_inc = 0; 
-			//when start spawing more/1 patch -> put this in a for loop for 37 patches --> ensure all get inialsed
+			//when start spawing more/1 patch -> spawn 37 plants -> each one executes mass spawn for patch 
 			if(Tick_counter == 0)
 			{
 				var init_patch = _plants.PatchEnvironment.Explore(Position, -1D, 1, agentInEnvironment
@@ -82,7 +77,6 @@ namespace Honeybush.Model
 					SpawnAdult(init_patch); //it works!
 				}
 				init_patch.havePlants = true; 
-				//count++; 
 			}
 			
 			var patch = _plants.PatchEnvironment.Explore(Position, -1D, 1, agentInEnvironment
@@ -95,6 +89,10 @@ namespace Honeybush.Model
 			//does the state need to be updated?
 			if (State == "seed" && Age > 5)
 				State = "mature"; 
+			
+			//does the Harvested flag need to be reset?
+			if(Harvested && Current_year != patch.LastHarvest)
+				Harvested = false;
 			
 			switch(Month)
 			{
@@ -122,6 +120,7 @@ namespace Honeybush.Model
 					break;
 				case 12: 
 					Set_Seed(patch);
+					//only increment age once 
 					if (age_inc == 0)
 					{
 						Age++; 
@@ -131,12 +130,14 @@ namespace Honeybush.Model
 					break;	
 			}	
 			checkHarvestable(patch); //every single plant in a patch needs to have done this before moving on
-			
-			if (Harvestable(patch)) //executes when deltaT = 1
+			//harvested flag not having the desired effect 
+			if (Harvestable(patch) && Harvested == false) //executes when deltaT = 1
 			{
 				patch.test_count++; 
 				reduceBiomassAddYield(patch);
+				Harvested = true; 
 			}
+			
 			Tick_counter = Context.CurrentTick; 
         }
 		
@@ -177,26 +178,33 @@ namespace Honeybush.Model
 		public void checkHarvestable(Patch patch)
 		{
 			patch.countAge += Age;
-			if(Stem_Colour != "green")
+			if(Stem_Colour != "green" && State == "mature")
 				patch.checkColour += 1; 	
 		}
 		
 		public bool Harvestable(Patch patch)
 		{
 			if(Current_year == patch.LastHarvest)
+			{
 				return true;
-			else{
+			}
+			else if (Current_year > 2020)
+			{//this part is odd -> not correct 
 				int aveAge = patch.countAge / patch.Patch_Population; 
 				double percent = 0.75*patch.Patch_Population; 
-				if(patch.checkColour >= Convert.ToInt32(percent) && aveAge >= 4 && Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt>=5)
-					return true;
+				if(patch.checkColour >= Convert.ToInt32(percent) && patch.LastHarvest != 0 &&
+				aveAge >= 4 && Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt>=5)
+				{	
+					Console.WriteLine(Current_year);
+					return true; 
+				}
 			}
 			return false; 
 		} 
 		
 		public void reduceBiomassAddYield(Patch patch)
 		{
-			if (Height > 40.0 && Stem_Colour != "green")
+			if (Height > 40.0 && Stem_Colour != "green" && State == "mature")
 			{
 				double reduce = Height - 15.0; //cut above 15cm 
 				Height -= reduce; 
@@ -275,7 +283,7 @@ namespace Honeybush.Model
 				adult_growth += 0.2; //adjustment of growth parameter to actuate high resprout rate 
 			}
 			if (State == "mature")
-				Height += adult_growth*(rain/(Current_year - lastHarvestOrFire));
+				Height += adult_growth*(rain/12*(Current_year - lastHarvestOrFire));
 			else //seedling/seed 
 				Height += seedling_growth*Height;
 		}

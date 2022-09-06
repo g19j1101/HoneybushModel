@@ -44,22 +44,32 @@ namespace Honeybush.Model
 		public double Crop_YieldB{get; set;}// model output, method B is average below
 		
 		public int test_count{get;set;}
+		
 		public bool havePlants = false; //flag for determining if a patch has been intialised with plants yet
 		
 		public int LastHarvest = 0, LastBurnt = 0;
 		
 		public int countAge = 0, checkColour = 0; 
 		
-		private int Tick_counter = 0, Current_year = 2000; 
+		private long Tick_counter = 0;
+		
+		private int Current_year = 2000, Month = 0; 
+		
+		private ISimulationContext Context;
 		
         public void Init(PatchLayer layer)
         {
-            Layer = layer; // store layer for access within agent class
+            _patches = layer; // store layer for access within agent class
 			Position = Position.CreateGeoPosition(Longitude, Latitude);
-            Layer.PatchEnvironment.Insert(this);
+            _patches.PatchEnvironment.Insert(this);
 			Patch_Population = Convert.ToInt32(Area)*GetRandomNumber(42, 800, 3500); //800-3500 plants per hectre 
 			Crop_YieldA = 0;
 			test_count = 0; 
+			Context = _patches.Context;
+			Tick_counter = Context.CurrentTick; 
+			DateTime date = (DateTime)Context.CurrentTimePoint;
+			Month = date.Month; 
+			Current_year = date.Year;
         }//intialise method
         
         public void Tick()
@@ -71,17 +81,21 @@ namespace Honeybush.Model
 			//fire and harvest acts upon a patch
 			// crop yield and pop size is detmerined by plant agents
 			//although - will also compare with the average calc eq
-	
-			Crop_YieldB = CalculateCropYieldEq(Patch_Population); 
+			DateTime date = (DateTime)Context.CurrentTimePoint;
+			Month = date.Month; 
+			Current_year = date.Year; 
+			
 			if(HarvestFireYear(Harvest_Data, Current_year))
-				LastHarvest = Current_year;
+				LastHarvest = Current_year; //definitely working as it should 
 			
 			if(HarvestFireYear(Fire_Data, Current_year))
 				LastBurnt = Current_year;  
 			
-			Tick_counter += 1; 
-			if (Tick_counter % 52 == 0)
-				Current_year++; 
+			if (Current_year == LastHarvest)
+				CalculateCropYieldEq(Patch_Population);
+			if(Current_year != LastHarvest)
+				Crop_YieldA = 0.0; 
+			Tick_counter = Context.CurrentTick; 
         }
 		
 		private int GetRandomNumber(int seed, int min, int max)
@@ -105,7 +119,7 @@ namespace Honeybush.Model
 		
 		private bool HarvestFireYear(string data, int year)
 		{
-			if (data.Contains(year.ToString()))
+			if (data.Contains(year.ToString()) && year != 0)
 				return true; 
 			return false; 
 		}
@@ -120,7 +134,7 @@ namespace Honeybush.Model
 			
 		// }
 		
-        private PatchLayer Layer { get; set; } // provides access to the main layer of this agent
+        private PatchLayer _patches { get; set; } // provides access to the main layer of this agent
         public Guid ID { get; set; } // identifies the agent
 		public Position Position { get; set; }
     }

@@ -25,7 +25,7 @@
 	  "mapping":[
 			{
 				"parameter":"adult_growth",
-				"value":0.007
+				"value":0.02
 			},
 			{
 				"parameter":"seedling_growth",
