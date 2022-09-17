@@ -23,8 +23,8 @@ namespace Honeybush.Model
    
         public void Init(PrecipitationLayer layer)
         {
-            Layer = layer; // store layer for access within agent class
-			//Layer.Rainfall.Insert(this);
+            _rain = layer; // store layer for access within agent class
+			//_rain.Rainfall.Insert(this);
         }//intialise method
         
         public void Tick()
@@ -33,8 +33,8 @@ namespace Honeybush.Model
 			//Precipitation agent is just a data holder
         }
 		
-        public PrecipitationLayer Layer { get; set; } // provides access to the main layer of this agent
+        public PrecipitationLayer _rain { get; set; } // provides access to the main layer of this agent
         public Guid ID { get; set; } // identifies the agent
 		public Position Position {get; set;}
-    }
+    } 
 }

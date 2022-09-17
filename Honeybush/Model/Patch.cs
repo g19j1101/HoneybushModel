@@ -16,6 +16,7 @@ namespace Honeybush.Model
     /// </summary>
     public class Patch : IAgent<PatchLayer>, IPositionable
     {
+		#region Attributes
 		[PropertyDescription]
 		public int Patch_ID{get; set;} //the FID 
 		
@@ -37,13 +38,15 @@ namespace Honeybush.Model
 		[PropertyDescription]
 		public string Fire_Data{get; set;} //get from history data
 		
+		[PropertyDescription]
+		public int Harvest_Days{get; set;}		
+		
 		public int Patch_Population{get; set;} //@determined by area, model output
 		
 		public double Crop_YieldA{get; set;}// model output, method A is individual plant contribition
 		
 		public double Crop_YieldB{get; set;}// model output, method B is average below
 		
-		public int test_count{get;set;}
 		
 		public bool havePlants = false; //flag for determining if a patch has been intialised with plants yet
 		
@@ -56,22 +59,25 @@ namespace Honeybush.Model
 		private int Current_year = 2000, Month = 0; 
 		
 		private ISimulationContext Context;
+		#endregion
 		
+		#region Init
         public void Init(PatchLayer layer)
         {
             _patches = layer; // store layer for access within agent class
 			Position = Position.CreateGeoPosition(Longitude, Latitude);
             _patches.PatchEnvironment.Insert(this);
-			Patch_Population = Convert.ToInt32(Area)*GetRandomNumber(42, 800, 3500); //800-3500 plants per hectre 
+			Patch_Population = Convert.ToInt32(Area)*rand.Next(800, 3500); //800-3500 plants per hectre 
 			Crop_YieldA = 0;
-			test_count = 0; 
 			Context = _patches.Context;
 			Tick_counter = Context.CurrentTick; 
 			DateTime date = (DateTime)Context.CurrentTimePoint;
 			Month = date.Month; 
 			Current_year = date.Year;
         }//intialise method
-        
+        #endregion
+		
+		#region Tick
         public void Tick()
         {
             //do something in every tick of the simulation
@@ -91,19 +97,19 @@ namespace Honeybush.Model
 			if(HarvestFireYear(Fire_Data, Current_year))
 				LastBurnt = Current_year;  
 			
-			if (Current_year == LastHarvest)
-				CalculateCropYieldEq(Patch_Population);
 			if(Current_year != LastHarvest)
+			{
 				Crop_YieldA = 0.0; 
+				Crop_YieldB = 0.0; 
+			}
+			if (Current_year == LastHarvest)
+				Crop_YieldB = CalculateCropYieldEq(Patch_Population);
+			
 			Tick_counter = Context.CurrentTick; 
         }
+		#endregion
 		
-		private int GetRandomNumber(int seed, int min, int max)
-		{
-			Random rand = new Random(seed);
-			return rand.Next(min, max); 
-		}
-		
+		#region Methods
 		//equation determined by field guide - McGregor 2018 
 		private double CalculateCropYieldEq(int numPlants)
 		{
@@ -123,19 +129,11 @@ namespace Honeybush.Model
 				return true; 
 			return false; 
 		}
-		// public int GetRainfall()
-		// {
-			
-		// }
-
-		
-		// public bool IsBurnable()
-		// {
-			
-		// }
+		#endregion
 		
         private PatchLayer _patches { get; set; } // provides access to the main layer of this agent
+		private Random rand = new Random(42); 
         public Guid ID { get; set; } // identifies the agent
-		public Position Position { get; set; }
+		public Position Position{get; set;}
     }
 }

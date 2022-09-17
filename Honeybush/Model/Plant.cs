@@ -19,6 +19,7 @@ namespace Honeybush.Model
     /// </summary>
     public class Plant : IAgent<PatchLayer>, IPositionable
     {
+		#region Attributes
 		[PropertyDescription]
 		public UnregisterAgent UnregisterHandle { get; set; }
 		
@@ -46,18 +47,23 @@ namespace Honeybush.Model
 		
 		private ISimulationContext Context; 
 		
-		public PrecipitationLayer _rainfall; //dependent on precipatation 
+		public PrecipitationLayer _rainfall; //dependent on precipitation 
+
+		#endregion
 		
+		#region Init
         public void Init(PatchLayer layer)
         {
 			_plants = layer;
 			Context = _plants.Context;
 			Tick_counter = Context.CurrentTick; 
-			DateTime date = (DateTime)Context.CurrentTimePoint;
+			DateTime date = (DateTime)Context.CurrentTimePoint; //GetValueorDefault
 			Month = date.Month; 
 			Current_year = date.Year;
         }//intialise method
+		#endregion
 		
+		#region Tick
         public void Tick()
         {
 			//depending on the month, call a phenophase method to update attributes
@@ -92,8 +98,11 @@ namespace Honeybush.Model
 			
 			//does the Harvested flag need to be reset?
 			if(Harvested && Current_year != patch.LastHarvest)
+			{
 				Harvested = false;
-			
+				patch.Harvest_Days = 30;
+			}
+			//Console.WriteLine(Month.GetType());
 			switch(Month)
 			{
 				case 0: 
@@ -102,8 +111,10 @@ namespace Honeybush.Model
 				case 2:
 					
 				case 3: 
+					//Console.WriteLine("about to grow");
 					var precipitation = _rainfall.Rainfall.Explore(Position, -1D, 1, agentInEnvironment
 															=> agentInEnvironment.Year == Current_year).FirstOrDefault();
+					//Console.WriteLine("about to grow");
 					Grow(patch, precipitation);
 					break;
 				case 4:
@@ -126,27 +137,33 @@ namespace Honeybush.Model
 						Age++; 
 						age_inc++; 
 					}
-					//Grow(patch, precipitation);
 					break;	
+				default: 
+					Console.WriteLine("error");
+					
+					break;
 			}	
 			checkHarvestable(patch); //every single plant in a patch needs to have done this before moving on
-			//harvested flag not having the desired effect 
-			if (Harvestable(patch) && Harvested == false) //executes when deltaT = 1
+		
+			if (Harvestable(patch) && Harvested == false && patch.Harvest_Days > 0 ) //executes when deltaT = 1
 			{
-				patch.test_count++; 
 				reduceBiomassAddYield(patch);
 				Harvested = true; 
+				patch.Harvest_Days--;
 			}
 			
 			Tick_counter = Context.CurrentTick; 
         }
+		#endregion
 		
+		#region Methods
 		private void Die(Patch patch)
         {
             UnregisterHandle.Invoke(_plants, this);
 			_plants.PlantEnvironment.Remove(this);
 			patch.GetPopulationAltered(-1, Patch_ID_plant);
         }
+		
 		/*Much of these ranges comes from an analysis of field assessments.*/
 		private void SpawnAdult(Patch patch)
 		{
@@ -154,7 +171,7 @@ namespace Honeybush.Model
 			{
 				agent.Patch_ID_plant = patch.Patch_ID;
 				agent.Age = rand.Next(4, 6); //let it be in a similar range 
-											       //  -> in the tick, harvest/fire data will change it via patch control
+											 //  -> in the tick, harvest/fire data will change it via patch control
 				agent.Height = rand.NextDouble() * (100 - 30) + 30;
 				agent.State = "mature"; 
 				agent.Position = Position.CreatePosition(patch.Longitude, patch.Latitude);
@@ -244,6 +261,7 @@ namespace Honeybush.Model
 				}
 			} 
 		} //Bud()
+		
 		/*Get num of flowers from num of buds -> abortion rate*/
 		private void Flower()
 		{
@@ -267,14 +285,14 @@ namespace Honeybush.Model
 		/*Source for logic and equation: Lucas et al. */
 		private void Grow(Patch patch, Precipitation moisture)
 		{
-			// int growthFactor = precipatation;  // moisture_level;
 			// double growth factor if theres been fire and rainfall
 			// increase growth slightly if there's been harvest
 			// std : low rainfall, no harvest , no fire 
 			// increase if high rainfall 
 			// Height += growthFactor; 
 			int lastHarvestOrFire = 0; 
-			double rain = moisture.Annual; //for now -> still need to find a way of incorporating Precipitation agent 
+			double rain = moisture.Annual;
+			Console.WriteLine(rain); //never happens -> so is growing occuring?
 			if (patch.LastHarvest > patch.LastBurnt)
 				lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter
 			else 
@@ -293,16 +311,16 @@ namespace Honeybush.Model
 			if (Current_year <= 2020)
 			{
 				if(Current_year == patch.LastBurnt)
-					return true; //need to use our history to get timeline correct 
+					return true; //need to use history to get timeline correct 
 			}
 			else
 			{
-				if(moisture.Annual < 550.0 && Current_year - patch.LastBurnt >= 4)//very simplistic, I know -- but it's what the data says!
+				if(moisture.Annual < 550.0 && Current_year - patch.LastBurnt >= 4)//very simplistic, but is observable from data
 					return true;
 			}
 			return false; 
 		}
-		
+		#endregion
         public Guid ID { get; set; } // identifies the agent
     }
 }

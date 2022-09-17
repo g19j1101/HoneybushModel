@@ -22,7 +22,7 @@ namespace Honeybush.Model
     public class PrecipitationLayer : AbstractLayer
     {
 		public IAgentManager AgentManager { get; private set; }
-		public GeoHashEnvironment<Precipitation> Rainfall { get; private set; }
+		public GeoHashEnvironment<Precipitation> Rainfall { get; set; }
 		
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle,
             UnregisterAgent unregisterAgentHandle)
