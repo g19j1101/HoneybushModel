@@ -4,29 +4,29 @@
 	"endPoint": "2020-04-01T23:00:00",
 	"deltaT": 1,
 	"deltaTUnit": "weeks",
-	"console": false,
-    "output": "csv",
-    "options": {
-      "delimiter": ";",
-      "format": "en-EN"
-    }
+	"console": true,
   },
 
   "agents": [
     {
       "name": "Patch",
-      "count": 44,
+      "count": 1,
 	  "file":"Resources/patch_data.csv",
 	  "mapping":[
 			{
 				"parameter":"Harvest_Days",
 				"value":30
 			},
-		]
+		],
+	  "output": "csv",
+	  "options": {
+      "delimiter": ";",
+      "format": "en-EN"
+		}
     },
 	{
 	  "name": "Plant",
-      "count": 44,
+      "count": 1,
 	  "mapping":[
 			{
 				"parameter":"adult_growth",

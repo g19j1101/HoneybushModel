@@ -40,8 +40,8 @@ namespace Honeybush.Model
 		public int Patch_ID_plant;  
 		
 		public long  Tick_counter = 0;
-		public int Current_year {get; set;}
-		public int Month{get;set;} //only an output for now to see if it's working...it's not
+		public int Current_year;
+		public int Month;//only an output for now to see if it's working...it's not
 		
 		private PatchLayer _plants;
 		
