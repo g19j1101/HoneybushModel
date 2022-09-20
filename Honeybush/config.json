@@ -15,7 +15,7 @@
   "agents": [
     {
       "name": "Patch",
-      "count": 1,
+      "count": 44,
 	  "file":"Resources/patch_data.csv",
 	  "mapping":[
 			{
@@ -26,7 +26,7 @@
     },
 	{
 	  "name": "Plant",
-      "count": 1,
+      "count": 44,
 	  "mapping":[
 			{
 				"parameter":"adult_growth",

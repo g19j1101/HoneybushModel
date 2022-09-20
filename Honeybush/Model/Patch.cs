@@ -113,7 +113,7 @@ namespace Honeybush.Model
 		//equation determined by field guide - McGregor 2018 
 		private double CalculateCropYieldEq(int numPlants)
 		{
-			return numPlants*0.45; //0.45kg = ave weight of plant
+			return numPlants*0.45 + 0.07*numPlants + 0.007*numPlants; //0.45kg = ave weight of plant
 		}
 		
 		public void GetPopulationAltered(int change, int id)
