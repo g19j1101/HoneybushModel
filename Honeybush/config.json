@@ -4,7 +4,7 @@
 	"endPoint": "2020-04-01T23:00:00",
 	"deltaT": 1,
 	"deltaTUnit": "weeks",
-	"console": true,
+	"console": false
   },
 
   "agents": [
