@@ -21,6 +21,8 @@ public class Plant : IAgent<PatchLayer>, IPositionable
     [PropertyDescription] public double adult_growth { get; set; } //growth rate parameter for a mature bush
 
     [PropertyDescription] public double seedling_growth { get; set; } //growth rate parameter for a seedling 
+	
+	[PropertyDescription] public PrecipitationLayer Precipitation { get; set; }
 
     public int Age; //@3 years since harvest -> can be harvested 
     public Position Position { get; set; }
@@ -40,10 +42,9 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 
     private ISimulationContext Context;
     
-    [PropertyDescription] 
-    public PrecipitationLayer Precipitation { get; set; }
-    
+	public Guid ID { get; set; } // identifies the agent
     #endregion
+	
     #region Init
 
     public void Init(PatchLayer layer)
@@ -152,9 +153,6 @@ public class Plant : IAgent<PatchLayer>, IPositionable
     }
 
     #endregion
-
-    public Guid ID { get; set; } // identifies the agent
-
 
     #region Methods
 
@@ -302,7 +300,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         // Height += growthFactor; 
         var lastHarvestOrFire = 0;
         var rain = moisture.Annual;
-        //Console.WriteLine(rain); //never happens -> so is growing occuring?
+        Console.WriteLine(rain); //never happens -> so is growing occuring?
         if (patch.LastHarvest > patch.LastBurnt)
         {
             lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter

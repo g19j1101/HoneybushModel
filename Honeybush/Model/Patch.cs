@@ -12,10 +12,51 @@ namespace Honeybush.Model;
 /// </summary>
 public class Patch : IAgent<PatchLayer>, IPositionable
 {
-    private readonly Random rand = new(42);
+	#region Attributes
+
+    [PropertyDescription] public int Patch_ID { get; set; } //the FID 
+
+    [PropertyDescription] public double Latitude { get; set; }
+
+    [PropertyDescription] public double Longitude { get; set; }
+
+    [PropertyDescription] public double Area { get; set; }
+
+    [PropertyDescription] public string Camp { get; set; } //for realism purposes
+
+    [PropertyDescription] public string Harvest_Data { get; set; } //get from history data
+
+    [PropertyDescription] public string Fire_Data { get; set; } //get from history data
+
+    [PropertyDescription] public int Harvest_Days { get; set; }
+
+    public int Patch_Population { get; set; } //@determined by area, model output
+
+    public double Crop_YieldA { get; set; } // model output, method A is individual plant contribition
+
+    public double Crop_YieldB { get; set; } // model output, method B is average below
+
+    public bool havePlants = false; //flag for determining if a patch has been intialised with plants yet
+
+    public int LastHarvest, LastBurnt;
+
+    public int countAge = 0, checkColour = 0;
+
+    private long Tick_counter;
+
+    private int Current_year = 2000, Month;
+
+    private ISimulationContext Context;
+	
+	private readonly Random rand = new(42);
 
     private PatchLayer _patches { get; set; } // provides access to the main layer of this agent
-
+	
+	public Guid ID { get; set; } // identifies the agent
+	
+    public Position Position { get; set; }
+    #endregion
+	
     #region Init
 
     public void Init(PatchLayer layer)
@@ -66,48 +107,6 @@ public class Patch : IAgent<PatchLayer>, IPositionable
 
         Tick_counter = Context.CurrentTick;
     }
-
-    #endregion
-
-    public Guid ID { get; set; } // identifies the agent
-    public Position Position { get; set; }
-
-    #region Attributes
-
-    [PropertyDescription] public int Patch_ID { get; set; } //the FID 
-
-    [PropertyDescription] public double Latitude { get; set; }
-
-    [PropertyDescription] public double Longitude { get; set; }
-
-    [PropertyDescription] public double Area { get; set; }
-
-    [PropertyDescription] public string Camp { get; set; } //for realism purposes
-
-    [PropertyDescription] public string Harvest_Data { get; set; } //get from history data
-
-    [PropertyDescription] public string Fire_Data { get; set; } //get from history data
-
-    [PropertyDescription] public int Harvest_Days { get; set; }
-
-    public int Patch_Population { get; set; } //@determined by area, model output
-
-    public double Crop_YieldA { get; set; } // model output, method A is individual plant contribition
-
-    public double Crop_YieldB { get; set; } // model output, method B is average below
-
-
-    public bool havePlants = false; //flag for determining if a patch has been intialised with plants yet
-
-    public int LastHarvest, LastBurnt;
-
-    public int countAge = 0, checkColour = 0;
-
-    private long Tick_counter;
-
-    private int Current_year = 2000, Month;
-
-    private ISimulationContext Context;
 
     #endregion
 

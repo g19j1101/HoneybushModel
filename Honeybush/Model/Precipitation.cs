@@ -20,7 +20,6 @@ public class Precipitation : IAgent<PrecipitationLayer>, IPositionable
     public void Init(PrecipitationLayer layer)
     {
         _rain = layer; // store layer for access within agent class
-        //_rain.Rainfall.Insert(this);
     } //intialise method
 
     public void Tick()
