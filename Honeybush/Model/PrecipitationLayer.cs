@@ -34,16 +34,9 @@ public class PrecipitationLayer : AbstractLayer
 
     public Precipitation FindAgentForYear(int year)
     {
-        // foreach (var precipitation in Agents)
-        // {
-            // if(precipitation.Year == year)
-            // {
-                // return precipitation;
-            // }
 		var target = Agents.Where(precipitation => precipitation.Year == year).FirstOrDefault();
 		if (target != null)
 			return target;
-        //}
         throw new ArgumentException($"No precipitation data for year {year}");
     }
 } //PrecipitationLayer

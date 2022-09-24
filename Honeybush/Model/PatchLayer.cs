@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using Mars.Common.Core.Collections;
 using Mars.Components.Environments;
 using Mars.Components.Layers;
@@ -27,7 +28,8 @@ public class PatchLayer : AbstractLayer
     public SpatialHashEnvironment<Plant> PlantEnvironment { get; private set; }
     public GeoHashEnvironment<Patch> PatchEnvironment { get; private set; }
     public PrecipitationLayer PrecipitationLayer { get; set; }
-
+	public List<Patch> Patches;
+	public List<Plant> Plants; 
     public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle,
         UnregisterAgent unregisterAgentHandle)
     {
@@ -37,8 +39,8 @@ public class PatchLayer : AbstractLayer
         PatchEnvironment = GeoHashEnvironment<Patch>.BuildByBBox(24.107791, -33.681584, 24.207791, -33.745409, 35.0);
         PlantEnvironment = new SpatialHashEnvironment<Plant>(Height, Width);
         AgentManager = layerInitData.Container.Resolve<IAgentManager>();
-        AgentManager.Spawn<Patch, PatchLayer>().ToList();
-        AgentManager.Spawn<Plant, PatchLayer>().ToList();
+        Patches = AgentManager.Spawn<Patch, PatchLayer>().ToList();
+        Plants = AgentManager.Spawn<Plant, PatchLayer>().ToList();
         return true;
     } //initlayer
 	
@@ -47,4 +49,26 @@ public class PatchLayer : AbstractLayer
 		var random = new Random();
 		return Position.CreatePosition(random.Next(Width), random.Next(Height));
 	}
+	
+	public Patch FindPatchForID(int plant_id)
+    {
+		var target = Patches.Where(patch => patch.havePlants
+               && patch.Patch_ID == plant_id).FirstOrDefault();
+		if (target != null)
+			return target;
+        throw new ArgumentException($"No patch for ID {plant_id}");
+    }
+	
+	public void checkHarvestable(Patch patch)
+    {
+		foreach (var plant in Plants)
+		{
+			if (plant.Patch_ID_plant == patch.Patch_ID)
+			{
+				patch.countAge += plant.Age;
+				if (plant.Stem_Colour != "green" && plant.State == "mature")
+					patch.checkColour += 1;
+			}
+		}
+    }
 }

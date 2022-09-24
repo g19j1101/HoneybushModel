@@ -81,11 +81,9 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             for (var i = 0; i < init_patch.Patch_Population; i++) SpawnAdult(init_patch); //it works!
             init_patch.havePlants = true;
         }
-
-        var patch = _plants.PatchEnvironment.Explore(Position, -1D, 1, agentInEnvironment
-            => agentInEnvironment.havePlants
-               && agentInEnvironment.Patch_ID == Patch_ID_plant).FirstOrDefault();
-        if (Age > 10) //need to build in decay factors in budding, flowering, etc. -> to add to this condition
+		
+		var patch = _plants.FindPatchForID(Patch_ID_plant); 
+        if (Age > 10 && Buds < 20) //need to build in decay factors in budding, flowering, etc. -> to add to this condition
             // some bushes do live much longer than 10 years
         {
             Die(patch);
@@ -140,7 +138,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 break;
         }
 
-        checkHarvestable(patch); //every single plant in a patch needs to have done this before moving on
+        _plants.checkHarvestable(patch); //every single plant in a patch needs to have done this before moving on
 
         if (Harvestable(patch) && Harvested == false && patch.Harvest_Days > 0) //executes when deltaT = 1
         {
@@ -191,12 +189,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         patch.GetPopulationAltered(1, Patch_ID_plant);
     } //SpawnSeed
 
-    public void checkHarvestable(Patch patch)
-    {
-        patch.countAge += Age;
-        if (Stem_Colour != "green" && State == "mature")
-            patch.checkColour += 1;
-    }
+    
 
     public bool Harvestable(Patch patch)
     {
@@ -205,12 +198,12 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         if (Current_year > 2020)
         {
             //this part is odd -> not correct 
-            var aveAge = patch.countAge / patch.Patch_Population;
+            int aveAge = patch.countAge / patch.Patch_Population;
             var percent = 0.75 * patch.Patch_Population;
             if (patch.checkColour >= Convert.ToInt32(percent) && patch.LastHarvest != 0 &&
                 aveAge >= 4 && Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt >= 5)
             {
-                Console.WriteLine(Current_year);
+                Console.WriteLine($"This year ({Current_year}) is a good time to harvest patch {patch.Patch_ID} in Camp {patch.Camp}.");
                 return true;
             }
         }
@@ -233,7 +226,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
     private void getBudsAndColour(string[] colour, int maxBuds)
     {
         Buds = rand.Next(0, maxBuds / 4); // divide by 4 to disperse budding over 4 months 
-        if (Age > 8)
+        if (Age > 10)
         {
             Stem_Colour = colour[3];
             Buds -= rand.Next(0, maxBuds); // old therefore will have few buds
@@ -300,7 +293,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         // Height += growthFactor; 
         var lastHarvestOrFire = 0;
         var rain = moisture.Annual;
-        Console.WriteLine(rain); //never happens -> so is growing occuring?
+        //Console.WriteLine(rain); //never happens -> so is growing occuring?
         if (patch.LastHarvest > patch.LastBurnt)
         {
             lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter
