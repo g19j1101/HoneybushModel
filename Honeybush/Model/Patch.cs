@@ -64,7 +64,7 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         _patches = layer; // store layer for access within agent class
         Position = Position.CreateGeoPosition(Longitude, Latitude);
         _patches.PatchEnvironment.Insert(this);
-        Patch_Population = Convert.ToInt32(Area) * rand.Next(800, 3500); //800-3500 plants per hectre 
+        Patch_Population = Convert.ToInt32(Area) * rand.Next(800, 3000); //800-3500 plants per hectre 
         Crop_YieldA = 0;
         Context = _patches.Context;
         Tick_counter = Context.CurrentTick;
@@ -105,6 +105,7 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         if (Current_year == LastHarvest)
             Crop_YieldB = CalculateCropYieldEq(Patch_Population);
 
+		//Console.WriteLine(LastHarvest);
         Tick_counter = Context.CurrentTick;
     }
 
@@ -115,7 +116,7 @@ public class Patch : IAgent<PatchLayer>, IPositionable
     //equation determined by field guide - McGregor 2018 
     private double CalculateCropYieldEq(int numPlants)
     {
-        return numPlants * 0.45; //0.45kg = ave weight of plant
+        return (0.75*numPlants) * 0.45; //0.45kg = ave weight of plant
     }
 
     public void GetPopulationAltered(int change, int id)
