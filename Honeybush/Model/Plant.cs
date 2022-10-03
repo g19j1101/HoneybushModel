@@ -24,12 +24,12 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 	
 	[PropertyDescription] public PrecipitationLayer Precipitation { get; set; }
 
-    public int Age; //@3 years since harvest -> can be harvested 
+    public int Age; //@4 years since harvest -> can be harvested 
     public Position Position { get; set; }
-    public string Stem_Colour, State;
+    public string Stem_Colour, State, MonthsToHarvest;
     private readonly Random rand = new(42); //seed the randomness 
     private int Buds, Flowers;
-    private bool Harvested;
+    private bool Harvested, Burnt;
 	private int Harvest_count = 0; 
     public double Height;
 
@@ -101,8 +101,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         {
             Harvested = false;
         }
-
-        //Console.WriteLine(Month.GetType());
+		
         switch (Month)
         {
             case 0:
@@ -132,7 +131,6 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 {
                     Age++;
                     age_inc++;
-					patch.Harvest_Days = 30; 
                 }
                 break;
             default:
@@ -140,13 +138,20 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 break;
         }
 
-        if (Harvestable(patch) && Harvested == false ) //executes when deltaT = 1
+        if (Harvestable(patch) && Harvested == false && patch.Harvest_Days > 0 && HarvestMonth()) //executes when deltaT = 1
         {
-			//Console.WriteLine("harvesting"); 
             reduceBiomassAddYield(patch);
             Harvested = true;
-           // patch.Harvest_Days--;
         }
+		
+		var moisture = Precipitation.FindAgentForYear(Current_year);
+		if (Burnable(patch, moisture) && Month > 8 && Burnt == false)
+		{
+			if (State == "seed")
+				Die(patch); 
+			reduceBiomassByFire(patch); 
+			Burnt = true; 
+		}
 		
         Tick_counter = Context.CurrentTick;
     }
@@ -204,6 +209,11 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         }
     }
 	
+	public void reduceBiomassByFire(Patch patch)
+	{
+		Height = rand.Next(2,4); //almost zero height
+		Age = 1;
+	}
     /*In Bud(), initialse #buds, stem colour + correspond this to height and age -> field assessment
      *Essentially, a lot of randomness since this is how variable wild honeybush is. */
     private void getBudsAndColour(string[] colour, int maxBuds)
@@ -311,12 +321,22 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 aveAge >= 4 && Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt >= 5)
             {
                 Console.WriteLine($"This year ({Current_year}) is a good time to harvest patch {patch.Patch_ID} in Camp {patch.Camp}.");
+				patch.LastHarvest = Current_year; 
                 return true;
             }
         }
 
         return false;
     }
+	
+	private bool HarvestMonth()
+	{
+		if (Current_year <= 2020)
+			return true
+		else if (MonthsToHarvest.Contains(Month.ToString()))
+			return true;
+		return false; 
+	}
 	
     private bool Burnable(Patch patch, Precipitation moisture)
     {
@@ -328,7 +348,10 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         else
         { //very simplistic condition, but is observable from data
             if (moisture.Annual < 550.0 && Current_year - patch.LastBurnt >= 4) 
+			{
+				patch.LastBurnt = Current_year; 
                 return true;
+			}
         }
 
         return false;

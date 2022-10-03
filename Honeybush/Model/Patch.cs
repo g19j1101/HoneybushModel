@@ -89,7 +89,9 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         var date = (DateTime) Context.CurrentTimePoint;
         Month = date.Month;
         Current_year = date.Year;
-
+		if (Month == 12 && Harvest_Days <= 0)
+			Harvest_Days = 30; 
+			
         if (HarvestFireYear(Harvest_Data, Current_year))
             LastHarvest = Current_year; //definitely working as it should 
 
@@ -103,9 +105,11 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         }
 
         if (Current_year == LastHarvest)
+		{
             Crop_YieldB = CalculateCropYieldEq(Patch_Population);
-
-		//Console.WriteLine(LastHarvest);
+			Harvest_Days--; 
+		}
+		 
         Tick_counter = Context.CurrentTick;
     }
 

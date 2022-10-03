@@ -1,7 +1,6 @@
-{
   "globals": {
 	"startPoint": "2000-01-01T00:00:00",
-	"endPoint": "2020-04-01T23:00:00",
+	"endPoint": "2030-04-01T23:00:00",
 	"deltaT": 1,
 	"deltaTUnit": "weeks",
 	"console": false
@@ -15,7 +14,7 @@
 	  "mapping":[
 			{
 				"parameter":"Harvest_Days",
-				"value":30
+				"value":50
 			},
 		],
 	  "output": "csv",
@@ -27,11 +26,11 @@
     },
 	{
 	  "name": "Plant",
-      "count": 1,
+      "count": 44,
 	  "mapping":[
 			{
 				"parameter":"adult_growth",
-				"value":0.5
+				"value":0.02
 			},
 			{
 				"parameter":"seedling_growth",
@@ -46,7 +45,7 @@
 	{
       "name": "Precipitation",
       "count": 22,
-	  "file":"Resources/zuuranys_rainfall.csv"
+	  "file":"Resources/ssp4_5.csv"
     },
   ]
 }

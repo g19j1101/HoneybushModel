@@ -1,23 +1,28 @@
-{
   "globals": {
 	"startPoint": "2000-01-01T00:00:00",
-	"endPoint": "2040-04-01T23:00:00",
-    "steps": 100,
+	"endPoint": "2030-04-01T23:00:00",
 	"deltaT": 1,
 	"deltaTUnit": "weeks",
-	"console": true,
-    "output": "csv",
-    "options": {
-      "delimiter": ";",
-      "format": "en-EN"
-    }
+	"console": false
   },
 
   "agents": [
     {
       "name": "Patch",
-      "count": 44,
+      "count": 1,
 	  "file":"Resources/patch_data.csv",
+	  "mapping":[
+			{
+				"parameter":"Harvest_Days",
+				"value":30
+			},
+		],
+	  "output": "csv",
+	  "options": 
+	   {
+		  "delimiter": ";",
+		  "format": "en-EN"
+	   }
     },
 	{
 	  "name": "Plant",
@@ -30,13 +35,17 @@
 			{
 				"parameter":"seedling_growth",
 				"value":0.2
+			},
+			{
+				"parameter":"MonthsToHarvest",
+				"value":"123"
 			}
 		]
 	},
 	{
       "name": "Precipitation",
       "count": 22,
-	  "file":"Resources/zuuranys_rainfall.csv"
+	  "file":"Resources/ssp4_5.csv"
     },
   ]
 }
