@@ -27,8 +27,8 @@ public class Patch : IAgent<PatchLayer>, IPositionable
     [PropertyDescription] public string Harvest_Data { get; set; } //get from history data
 
     [PropertyDescription] public string Fire_Data { get; set; } //get from history data
-
-    [PropertyDescription] public int Harvest_Days { get; set; }
+	
+	[PropertyDescription] public int Harvest_Days { get; set; }
 
     public int Patch_Population { get; set; } //@determined by area, model output
 
@@ -44,7 +44,7 @@ public class Patch : IAgent<PatchLayer>, IPositionable
 
     private long Tick_counter;
 
-    private int Current_year = 2000, Month;
+    private int Current_year = 2000, Month, harvestDec = 0;
 
     private ISimulationContext Context;
 	
@@ -89,7 +89,7 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         var date = (DateTime) Context.CurrentTimePoint;
         Month = date.Month;
         Current_year = date.Year;
-		if (Month == 12 && Harvest_Days <= 0)
+		if (Month == 12 && Harvest_Days < 30)
 			Harvest_Days = 30; 
 			
         if (HarvestFireYear(Harvest_Data, Current_year))
@@ -102,12 +102,16 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         {
             Crop_YieldA = 0.0;
             Crop_YieldB = 0.0;
+			harvestDec = 0;
         }
 
-        if (Current_year == LastHarvest)
-		{
+        if (Current_year == LastHarvest) 
             Crop_YieldB = CalculateCropYieldEq(Patch_Population);
+	
+		if (Current_year == LastHarvest && harvestDec == 0)
+		{
 			Harvest_Days--; 
+			harvestDec++; 
 		}
 		 
         Tick_counter = Context.CurrentTick;

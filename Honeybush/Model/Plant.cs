@@ -85,7 +85,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 		
 		var patch = _plants.FindPatchForID(Patch_ID_plant); 
 	
-        if (Age > 15) //need to build in decay factors in budding, flowering, etc. -> to add to this condition
+        if (Age > 10) //need to build in decay factors in budding, flowering, etc. -> to add to this condition
             // some bushes do live much longer than 10 years
         {
             Die(patch);
@@ -193,7 +193,6 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             agent.Position = Position.CreatePosition(patch.Longitude, patch.Latitude);
         }).Take(1).First();
         patch.GetPopulationAltered(1, Patch_ID_plant);
-		//Console.WriteLine(patch.Patch_Population);
     } //SpawnSeed
 
     public void reduceBiomassAddYield(Patch patch)
@@ -203,7 +202,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 			double temp = Height; 
             double reduce = Height - 15.0; //cut above 15cm 
             Height -= reduce;
-            patch.Crop_YieldA += 0.01*reduce;//((rand.NextDouble() * (10 - 5) + 5) * reduce)*0.001; //cm to grams conversion 
+            patch.Crop_YieldA += (0.45*reduce)*reduce*0.001;//((rand.NextDouble() * (10 - 5) + 5) * reduce)*0.001; //cm to grams conversion 
 			//Console.WriteLine("adding yield"); 
 			//Harvest_count--;
         }
@@ -284,7 +283,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         // increase if high rainfall 
         // Height += growthFactor; 
         int lastHarvestOrFire = 0;
-        var rain = moisture.Annual;
+        int rain = Convert.ToInt32(moisture.Annual);
         if (patch.LastHarvest > patch.LastBurnt)
         {
             lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter
@@ -296,7 +295,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         }  
 		
         if (State == "mature")
-            Height += adult_growth*(rain / (12 * Current_year - lastHarvestOrFire));
+            Height += adult_growth*(rain / (3*(Current_year - lastHarvestOrFire)));
         else //seedling/seed 
             Height += seedling_growth * Height;
 		adult_growth -= 0.2; //reset to normal growth parameter 
@@ -332,7 +331,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 	private bool HarvestMonth()
 	{
 		if (Current_year <= 2020)
-			return true
+			return true;
 		else if (MonthsToHarvest.Contains(Month.ToString()))
 			return true;
 		return false; 
