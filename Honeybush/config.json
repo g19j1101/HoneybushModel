@@ -6,12 +6,6 @@
 	"deltaTUnit": "weeks",
 	"console": false
   },
-  "layers":[
-	{
-		"name":"PatchLayer",
-		
-	}
-  ],
   "agents": [
     {
       "name": "Patch",

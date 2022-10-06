@@ -73,7 +73,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         var date = (DateTime) Context.CurrentTimePoint;
         Month = date.Month;
         Current_year = date.Year;
-        var age_inc = 0;
+        int age_inc = 0;
         //when start spawing more/1 patch -> spawn 37 plants -> each one executes mass spawn for patch 
         if (Tick_counter == 0)
         {
@@ -95,12 +95,17 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         //does the state need to be updated?
         if (State == "seed" && Age > 5)
             State = "mature";
-
+		
+		//reset age_inc so age can be incremented again 
+		if(Month == 1 && age_inc > 0)
+			age_inc = 0; 
+		
         //does the Harvested flag need to be reset?
         if (Harvested && Current_year != patch.LastHarvest)
-        {
             Harvested = false;
-        }
+		
+		if(Burnt && Current_year != patch.LastBurnt)
+			Burnt = false; 
 		
         switch (Month)
         {
@@ -199,12 +204,9 @@ public class Plant : IAgent<PatchLayer>, IPositionable
     {
         if (Height > 40.0 && Stem_Colour != "green" && State == "mature")
         {
-			double temp = Height; 
             double reduce = Height - 15.0; //cut above 15cm 
             Height -= reduce;
             patch.Crop_YieldA += (0.45*reduce)*reduce*0.001;//((rand.NextDouble() * (10 - 5) + 5) * reduce)*0.001; //cm to grams conversion 
-			//Console.WriteLine("adding yield"); 
-			//Harvest_count--;
         }
     }
 	
@@ -268,8 +270,8 @@ public class Plant : IAgent<PatchLayer>, IPositionable
      *Abortion rate is something that can be tuned according to rainfall.*/
     private void Set_Seed(Patch patch)
     {
-        int seeds = Convert.ToInt32((rand.NextDouble() * (0.2 - 0.1) + 0.1) * Flowers);
-        for (var i = 0; i < seeds / 4; i++)
+        var seeds = 0.1 * Flowers;
+        for (var i = 0; i < Convert.ToInt32(seeds) / 4; i++)
             SpawnSeed(patch);
     }
 
@@ -293,6 +295,9 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             lastHarvestOrFire = patch.LastBurnt; // better resprout rate if burnt
             adult_growth += 0.2; //adjustment of growth parameter to actuate high resprout rate 
         }  
+		
+		if (Age > 8)
+			adult_growth -= 0.02; //wont't grow as much
 		
         if (State == "mature")
             Height += adult_growth*(rain / (3*(Current_year - lastHarvestOrFire)));
