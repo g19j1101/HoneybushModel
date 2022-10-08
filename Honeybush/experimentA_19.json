@@ -1,4 +1,3 @@
-{
   "globals": {
 	"startPoint": "2000-01-01T00:00:00",
 	"endPoint": "2030-04-01T23:00:00",
@@ -6,6 +5,7 @@
 	"deltaTUnit": "weeks",
 	"console": false
   },
+
   "agents": [
     {
       "name": "Patch",
@@ -26,7 +26,7 @@
     },
 	{
 	  "name": "Plant",
-      "count": 1,
+      "count": 44,
 	  "mapping":[
 			{
 				"parameter":"adult_growth",
@@ -44,8 +44,8 @@
 	},
 	{
       "name": "Precipitation",
-      "count": 31,
+      "count": 22,
 	  "file":"Resources/ssp1_9.csv"
-    }
+    },
   ]
 }

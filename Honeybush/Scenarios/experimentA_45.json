@@ -1,4 +1,5 @@
-  "globals": {
+{
+ "globals": {
 	"startPoint": "2000-01-01T00:00:00",
 	"endPoint": "2030-04-01T23:00:00",
 	"deltaT": 1,
@@ -26,7 +27,7 @@
     },
 	{
 	  "name": "Plant",
-      "count": 44,
+      "count": 1,
 	  "mapping":[
 			{
 				"parameter":"adult_growth",
@@ -44,7 +45,7 @@
 	},
 	{
       "name": "Precipitation",
-      "count": 22,
+      "count": 31,
 	  "file":"Resources/ssp4_5.csv"
     },
   ]

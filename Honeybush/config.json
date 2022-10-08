@@ -4,7 +4,7 @@
 	"endPoint": "2020-04-01T23:00:00",
 	"deltaT": 1,
 	"deltaTUnit": "weeks",
-	"console": false
+	"console": true
   },
   "agents": [
     {
@@ -15,7 +15,7 @@
 			{
 				"parameter":"Harvest_Days",
 				"value":30
-			}
+			},
 		],
 	  "output": "csv",
 	  "options": 
@@ -30,7 +30,7 @@
 	  "mapping":[
 			{
 				"parameter":"adult_growth",
-				"value":0.07
+				"value":0.03
 			},
 			{
 				"parameter":"seedling_growth",
@@ -46,6 +46,6 @@
       "name": "Precipitation",
       "count": 22,
 	  "file":"Resources/zuuranys_rainfall.csv"
-    },
+    }
   ]
 }

@@ -23,8 +23,8 @@ namespace Honeybush
             // scenario definition
             // use config.json that holds the specification of the scenario
 			var file = File.ReadAllText("config.json");
-            //var file = File.ReadAllText("Scenarios/experimentA_19.json");
-			//var file = File.ReadAllText("Scenarios/experimentA_45.json");
+            //var file = File.ReadAllText("experimentA_19.json");
+			//var file = File.ReadAllText("experimentA_45.json");
 			//var file = File.ReadAllText("Scenarios/experimentB_19.json");
 			//var file = File.ReadAllText("Scenarios/experimentB_45.json");
 			//var file = File.ReadAllText("Scenarios/experimentC_19.json");

@@ -38,9 +38,11 @@ public class Patch : IAgent<PatchLayer>, IPositionable
 
     public bool havePlants = false; //flag for determining if a patch has been intialised with plants yet
 
-    public int LastHarvest, LastBurnt;
+    public int LastHarvest { get; set; } 
+	
+	public int LastBurnt { get; set; }
 
-    public int countAge = 0, checkColour = 0;
+    public int countAge = 0, checkColour = 0, harvestCount = 0;
 
     private long Tick_counter;
 
@@ -64,7 +66,8 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         _patches = layer; // store layer for access within agent class
         Position = Position.CreateGeoPosition(Longitude, Latitude);
         _patches.PatchEnvironment.Insert(this);
-        Patch_Population = Convert.ToInt32(Area) * rand.Next(800, 3000); //800-3500 plants per hectre 
+        Patch_Population = Convert.ToInt32(Area) * rand.Next(200, 400); //800-3500 plants per hectre 
+		harvestCount = Convert.ToInt32(0.75*Patch_Population); 
         Crop_YieldA = 0;
         Context = _patches.Context;
         Tick_counter = Context.CurrentTick;
@@ -93,8 +96,8 @@ public class Patch : IAgent<PatchLayer>, IPositionable
 			Harvest_Days = 30; 
 			
         if (HarvestFireYear(Harvest_Data, Current_year))
-            LastHarvest = Current_year; //definitely working as it should 
-
+            LastHarvest = Current_year; 
+			
         if (HarvestFireYear(Fire_Data, Current_year))
             LastBurnt = Current_year;
 
@@ -137,7 +140,9 @@ public class Patch : IAgent<PatchLayer>, IPositionable
     private bool HarvestFireYear(string data, int year)
     {
         if (data.Contains(year.ToString()) && year != 0)
+		{
             return true;
+		}
         return false;
     }
 

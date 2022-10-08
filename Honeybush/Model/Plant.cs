@@ -24,20 +24,19 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 	
 	[PropertyDescription] public PrecipitationLayer Precipitation { get; set; }
 
-    public int Age; //@4 years since harvest -> can be harvested 
+    public int Age, Decay, age_inc; //@4 years since harvest -> can be harvested 
     public Position Position { get; set; }
     public string Stem_Colour, State, MonthsToHarvest;
     private readonly Random rand = new(42); //seed the randomness 
     private int Buds, Flowers;
-    private bool Harvested, Burnt;
-	private int Harvest_count = 0; 
+    private bool Harvested = false, Burnt = false;
     public double Height;
 
     public int Patch_ID_plant;
 
     public long Tick_counter;
     public int Current_year { get; set; }
-    public int Month { get; set; } //only an output for now to see if it's working...it's not
+    public int Month { get; set; } 
 
     private PatchLayer _plants;
 
@@ -57,6 +56,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         var date = (DateTime) Context.CurrentTimePoint; //GetValueorDefault
         Month = date.Month;
         Current_year = date.Year;
+		age_inc = 0;
 		_plants.PlantEnvironment.Insert(this); 
     } //intialise method
 
@@ -73,7 +73,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         var date = (DateTime) Context.CurrentTimePoint;
         Month = date.Month;
         Current_year = date.Year;
-        int age_inc = 0;
+
         //when start spawing more/1 patch -> spawn 37 plants -> each one executes mass spawn for patch 
         if (Tick_counter == 0)
         {
@@ -104,6 +104,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         if (Harvested && Current_year != patch.LastHarvest)
             Harvested = false;
 		
+		//does the Burnt flag need to be reset? 
 		if(Burnt && Current_year != patch.LastBurnt)
 			Burnt = false; 
 		
@@ -129,13 +130,14 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 Flower();
                 break;
             case 12:
-				if (Age < 10)
+				if (Age < 10 && State == "mature")
 					Set_Seed(patch);
                 //only increment age once 
                 if (age_inc == 0)
                 {
                     Age++;
                     age_inc++;
+					Decay++; 
                 }
                 break;
             default:
@@ -143,20 +145,24 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 break;
         }
 
-        if (Harvestable(patch) && Harvested == false && patch.Harvest_Days > 0 && HarvestMonth()) //executes when deltaT = 1
+		var moisture = Precipitation.FindAgentForYear(Current_year);
+		if (Burnable(patch, moisture) && Burnt == false)//&& Month > 8 && Burnt == false)
+		{ 
+			reduceBiomassByFire(patch); 
+			Console.WriteLine($"{patch.Patch_ID} has been burnt in {Current_year}");
+			Burnt = true; 
+			Decay--; 
+		}
+		
+        if (Harvestable(patch) && Harvested == false && HarvestMonth() && patch.harvestCount > 0) //executes when deltaT = 1
         {
+			//Console.WriteLine("will harvest"); 
             reduceBiomassAddYield(patch);
             Harvested = true;
+			Decay++; 
+			patch.harvestCount--; 
+			//Console.WriteLine($"{patch.Patch_ID} has been harvested in {Current_year}");
         }
-		
-		var moisture = Precipitation.FindAgentForYear(Current_year);
-		if (Burnable(patch, moisture) && Month > 8 && Burnt == false)
-		{
-			if (State == "seed")
-				Die(patch); 
-			reduceBiomassByFire(patch); 
-			Burnt = true; 
-		}
 		
         Tick_counter = Context.CurrentTick;
     }
@@ -167,8 +173,8 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 
     private void Die(Patch patch)
     {
+		_plants.PlantEnvironment.Remove(this);
         UnregisterHandle.Invoke(_plants, this);
-        _plants.PlantEnvironment.Remove(this);
         patch.GetPopulationAltered(-1, Patch_ID_plant);
     }
 
@@ -180,6 +186,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             agent.Patch_ID_plant = patch.Patch_ID;
             agent.Age = rand.Next(4, 6); //let it be in a similar range 
             //  -> in the tick, harvest/fire data will change it via patch control
+			age_inc = 0; 
             agent.Height = rand.NextDouble() * (150 - 30) + 30;
             agent.State = "mature";
             agent.Position = Position.CreatePosition(patch.Longitude, patch.Latitude);
@@ -195,6 +202,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             agent.State = "seed";
             agent.Height = 1;
             agent.Age = 0;
+			age_inc = 0; 
             agent.Position = Position.CreatePosition(patch.Longitude, patch.Latitude);
         }).Take(1).First();
         patch.GetPopulationAltered(1, Patch_ID_plant);
@@ -215,6 +223,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 		Height = rand.Next(2,4); //almost zero height
 		Age = 1;
 	}
+	
     /*In Bud(), initialse #buds, stem colour + correspond this to height and age -> field assessment
      *Essentially, a lot of randomness since this is how variable wild honeybush is. */
     private void getBudsAndColour(string[] colour, int maxBuds)
@@ -271,7 +280,8 @@ public class Plant : IAgent<PatchLayer>, IPositionable
     private void Set_Seed(Patch patch)
     {
         var seeds = 0.1 * Flowers;
-        for (var i = 0; i < Convert.ToInt32(seeds) / 4; i++)
+		//Console.WriteLine(seeds); 
+        for (int i = 0; i < Convert.ToInt32(seeds) / 4; i++)
             SpawnSeed(patch);
     }
 
@@ -289,29 +299,32 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         if (patch.LastHarvest > patch.LastBurnt)
         {
             lastHarvestOrFire = patch.LastHarvest; //perhaps need to adust growth parameter
+			adult_growth = 0.03;
+			seedling_growth = 0.2; 
         }
         else
         {
             lastHarvestOrFire = patch.LastBurnt; // better resprout rate if burnt
             adult_growth += 0.2; //adjustment of growth parameter to actuate high resprout rate 
+			if (State == "seed" && Age > 1)
+				seedling_growth++;
         }  
 		
-		if (Age > 8)
-			adult_growth -= 0.02; //wont't grow as much
+		if (Age > 8 && Decay > 10)
+			adult_growth = 0.01; //wont't grow as much
 		
         if (State == "mature")
-            Height += adult_growth*(rain / (3*(Current_year - lastHarvestOrFire)));
+            Height += adult_growth*(rain / (12*(Current_year - lastHarvestOrFire)));
         else //seedling/seed 
             Height += seedling_growth * Height;
-		adult_growth -= 0.2; //reset to normal growth parameter 
+		//Console.WriteLine(Height); 
     }
 	
 	private bool Harvestable(Patch patch)
     {
         if (Current_year == patch.LastHarvest) 
 		{
-			Harvest_count = Convert.ToInt32(0.75*patch.Patch_Population); 
-			//Console.WriteLine(Harvest_count); 
+			patch.harvestCount = Convert.ToInt32(0.75*patch.Patch_Population); 
 			return true;
 		}
 		
@@ -320,16 +333,16 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             _plants.checkHarvestable(patch); //every single plant in a patch needs to have done this before moving on 
             int aveAge = patch.countAge / patch.Patch_Population;
             var percent = 0.75 * patch.Patch_Population;
-			Harvest_count = Convert.ToInt32(percent); 
-            if (patch.checkColour >= Convert.ToInt32(percent) && patch.LastHarvest != 0 &&
-                aveAge >= 4 && Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt >= 5)
+            if (aveAge >= 4 && patch.checkColour >= Convert.ToInt32(percent)
+				&& Current_year - patch.LastHarvest >= 4 && Current_year - patch.LastBurnt >= 5)
             {
                 Console.WriteLine($"This year ({Current_year}) is a good time to harvest patch {patch.Patch_ID} in Camp {patch.Camp}.");
 				patch.LastHarvest = Current_year; 
+				patch.harvestCount = Convert.ToInt32(0.75*patch.Patch_Population);
                 return true;
             }
         }
-
+// && aveAge >= 4 && 
         return false;
     }
 	
