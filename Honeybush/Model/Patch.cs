@@ -66,7 +66,7 @@ public class Patch : IAgent<PatchLayer>, IPositionable
         _patches = layer; // store layer for access within agent class
         Position = Position.CreateGeoPosition(Longitude, Latitude);
         _patches.PatchEnvironment.Insert(this);
-        Patch_Population = Convert.ToInt32(Area) * rand.Next(200, 400); //800-3500 plants per hectre 
+        Patch_Population = Convert.ToInt32(Area) * rand.Next(800, 3500); //800-3500 plants per hectre 
 		harvestCount = Convert.ToInt32(0.75*Patch_Population); 
         Crop_YieldA = 0;
         Context = _patches.Context;

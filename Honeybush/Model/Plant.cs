@@ -116,6 +116,8 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             case 3:
                 var precipitation = Precipitation.FindAgentForYear(Current_year);
                 Grow(patch, precipitation);
+				if(Current_year > 2020 && precipitation.Annual < 300.0)
+					Decay++; 
                 break;
             case 4:
             case 5:
@@ -130,7 +132,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 Flower();
                 break;
             case 12:
-				if (Age < 10 && State == "mature")
+				if (Age < 10 && State == "mature" && patch.Patch_Population < 1000*patch.Area)
 					Set_Seed(patch);
                 //only increment age once 
                 if (age_inc == 0)
@@ -151,17 +153,16 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 			reduceBiomassByFire(patch); 
 			Console.WriteLine($"{patch.Patch_ID} has been burnt in {Current_year}");
 			Burnt = true; 
-			Decay--; 
+			Decay--; //rejuvenation by fire 
 		}
 		
         if (Harvestable(patch) && Harvested == false && HarvestMonth() && patch.harvestCount > 0) //executes when deltaT = 1
         {
-			//Console.WriteLine("will harvest"); 
             reduceBiomassAddYield(patch);
             Harvested = true;
 			Decay++; 
 			patch.harvestCount--; 
-			//Console.WriteLine($"{patch.Patch_ID} has been harvested in {Current_year}");
+			Console.WriteLine($"{patch.Patch_ID} has been harvested in {Current_year}");
         }
 		
         Tick_counter = Context.CurrentTick;
@@ -317,7 +318,6 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             Height += adult_growth*(rain / (12*(Current_year - lastHarvestOrFire)));
         else //seedling/seed 
             Height += seedling_growth * Height;
-		//Console.WriteLine(Height); 
     }
 	
 	private bool Harvestable(Patch patch)
@@ -364,7 +364,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         }
         else
         { //very simplistic condition, but is observable from data
-            if (moisture.Annual < 550.0 && Current_year - patch.LastBurnt >= 4) 
+            if (moisture.Annual < 550.0 && Current_year - patch.LastBurnt >= 5) 
 			{
 				patch.LastBurnt = Current_year; 
                 return true;
