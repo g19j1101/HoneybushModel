@@ -7,7 +7,7 @@ using Mars.Interfaces.Environments;
 namespace Honeybush.Model;
 
 /// <summary>
-///     A simple agent stub that has an Init() method for initialization and a
+///     A Patch agent class that has an Init() method for initialization and a
 ///     Tick() method for acting in every tick of the simulation.
 /// </summary>
 public class Patch : IAgent<PatchLayer>, IPositionable
@@ -81,14 +81,10 @@ public class Patch : IAgent<PatchLayer>, IPositionable
     #region Tick
 
     public void Tick()
-    {
-        //do something in every tick of the simulation
-        //decide in every tick if the Patch is burnable or harvestable
-        //Harvestable()and Burnable() will probably be public methods that indicate what the behaviour
-        //of the fire and harvestor agent is 
-        //fire and harvest acts upon a patch
+    {	
+		// evaluate history data
         // crop yield and pop size is detmerined by plant agents
-        //although - will also compare with the average calc eq
+        // although - will also compare with the average calc eq
         var date = (DateTime) Context.CurrentTimePoint;
         Month = date.Month;
         Current_year = date.Year;

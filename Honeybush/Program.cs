@@ -17,19 +17,19 @@ namespace Honeybush
             var description = new ModelDescription();
             description.AddLayer<PatchLayer>();// Register the layer for patch and plant
             description.AddAgent<Patch, PatchLayer>();// Register agent Patch
-			description.AddAgent<Plant, PatchLayer>(); // register agent plant
-			description.AddLayer<PrecipitationLayer>();
-			description.AddAgent<Precipitation, PrecipitationLayer>();
+			description.AddAgent<Plant, PatchLayer>(); // Register agent Plant
+			description.AddLayer<PrecipitationLayer>(); // Register layer for precipitation
+			description.AddAgent<Precipitation, PrecipitationLayer>(); // Register agent Precipitation
             // scenario definition
             // use config.json that holds the specification of the scenario
 			var file = File.ReadAllText("config.json");
             //var file = File.ReadAllText("experimentA_19.json");
 			//var file = File.ReadAllText("experimentA_45.json");
-			//var file = File.ReadAllText("Scenarios/experimentB_19.json");
-			//var file = File.ReadAllText("Scenarios/experimentB_45.json");
-			//var file = File.ReadAllText("Scenarios/experimentC_19.json");
-			//var file = File.ReadAllText("Scenarios/experimentC_45.json");
-			//var file = File.ReadAllText("Scenarios/experimentC_85.json");
+			//var file = File.ReadAllText("experimentB_19.json");
+			//var file = File.ReadAllText("experimentB_45.json");
+			//var file = File.ReadAllText("experimentC_19.json");
+			//var file = File.ReadAllText("experimentC_45.json");
+			//var file = File.ReadAllText("experimentC_85.json");
 			
             var config = SimulationConfig.Deserialize(file);
             

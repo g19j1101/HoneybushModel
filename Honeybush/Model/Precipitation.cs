@@ -6,7 +6,7 @@ using Mars.Interfaces.Environments;
 namespace Honeybush.Model;
 
 /// <summary>
-///     A simple agent stub that has an Init() method for initialization and a
+///     A simple Precipitation agent class that has an Init() method for initialization and a
 ///     Tick() method for acting in every tick of the simulation.
 /// </summary>
 public class Precipitation : IAgent<PrecipitationLayer>, IPositionable

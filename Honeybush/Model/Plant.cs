@@ -9,7 +9,7 @@ using Mars.Interfaces.Layers;
 namespace Honeybush.Model;
 
 /// <summary>
-///     A simple agent stub that has an Init() method for initialization and a
+///     A Plant agent class that has an Init() method for initialization and a
 ///     Tick() method for acting in every tick of the simulation.
 /// </summary>
 public class Plant : IAgent<PatchLayer>, IPositionable
@@ -74,12 +74,12 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         Month = date.Month;
         Current_year = date.Year;
 
-        //when start spawing more/1 patch -> spawn 37 plants -> each one executes mass spawn for patch 
+        //when start spawing more/1 patch -> spawn 44 plants -> each one executes mass spawn for patch 
         if (Tick_counter == 0)
         {
             var init_patch = _plants.PatchEnvironment.Explore(Position, -1D, 1, agentInEnvironment
                 => agentInEnvironment.havePlants == false).FirstOrDefault();
-            for (var i = 0; i < init_patch.Patch_Population; i++) SpawnAdult(init_patch); //it works!
+            for (var i = 0; i < init_patch.Patch_Population; i++) SpawnAdult(init_patch); 
             init_patch.havePlants = true;
         }
 		
@@ -117,7 +117,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 var precipitation = Precipitation.FindAgentForYear(Current_year);
                 Grow(patch, precipitation);
 				if(Current_year > 2020 && precipitation.Annual < 300.0)
-					Decay++; 
+					Decay++; //hotter year -> plant decays further
                 break;
             case 4:
             case 5:
@@ -132,7 +132,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 Flower();
                 break;
             case 12:
-				if (Age < 10 && State == "mature" && patch.Patch_Population < 1000*patch.Area)
+				if (Age < 10 && State == "mature" && patch.Patch_Population < 3000*patch.Area)
 					Set_Seed(patch);
                 //only increment age once 
                 if (age_inc == 0)
@@ -148,7 +148,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         }
 
 		var moisture = Precipitation.FindAgentForYear(Current_year);
-		if (Burnable(patch, moisture) && Burnt == false)//&& Month > 8 && Burnt == false)
+		if (Burnable(patch, moisture) && Burnt == false)
 		{ 
 			reduceBiomassByFire(patch); 
 			Console.WriteLine($"{patch.Patch_ID} has been burnt in {Current_year}");
@@ -157,6 +157,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 		}
 		
         if (Harvestable(patch) && Harvested == false && HarvestMonth() && patch.harvestCount > 0) //executes when deltaT = 1
+		//also density -> will choose more denser patches. | factor to be built into an enhancement
         {
             reduceBiomassAddYield(patch);
             Harvested = true;
@@ -179,7 +180,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         patch.GetPopulationAltered(-1, Patch_ID_plant);
     }
 
-    /*Much of these ranges comes from an analysis of field assessments.*/
+    /*Much of the logic for these random ranges comes from an analysis of field assessments.*/
     private void SpawnAdult(Patch patch)
     {
         _plants.AgentManager.Spawn<Plant, PatchLayer>(null, agent =>
@@ -215,15 +216,15 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         {
             double reduce = Height - 15.0; //cut above 15cm 
             Height -= reduce;
-            patch.Crop_YieldA += (0.45*reduce)*reduce*0.001;//((rand.NextDouble() * (10 - 5) + 5) * reduce)*0.001; //cm to grams conversion 
+            patch.Crop_YieldA += (0.45*reduce)*reduce*0.001;//cm to grams conversion 
         }
-    }
+    } //reduceBiomassAddYield
 	
 	public void reduceBiomassByFire(Patch patch)
 	{
 		Height = rand.Next(2,4); //almost zero height
 		Age = 1;
-	}
+	} //reduceBiomassByFire
 	
     /*In Bud(), initialse #buds, stem colour + correspond this to height and age -> field assessment
      *Essentially, a lot of randomness since this is how variable wild honeybush is. */
@@ -236,7 +237,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
             Buds -= rand.Next(maxBuds/2, maxBuds/4); // old therefore will have few buds
         }
         Stem_Colour = colour[rand.Next(1, 2)];
-    }
+    } //getBudsAndColour
 
     private void Bud()
     {
@@ -263,7 +264,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 Buds = 0;
             }
         }
-    } //Bud()
+    } //Bud
 
     /*Get num of flowers from num of buds -> abortion rate*/
     private void Flower()
@@ -271,7 +272,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         if (Buds < 0)
             Flowers = 0; //negative translates to no buds 
         Flowers = Convert.ToInt32(0.9 * Buds); //some buds won't flower 
-    }
+    } // Flower
 
     /*num seeds from num flowers, spawn a seed, include abortion rate of 90% somewhere.
      * note an abstraction -> skipped phase of forming pods 
@@ -284,7 +285,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 		//Console.WriteLine(seeds); 
         for (int i = 0; i < Convert.ToInt32(seeds) / 4; i++)
             SpawnSeed(patch);
-    }
+    } //Set_Seed
 
     /*December to March: growth*/
     /*Source for logic and equation: Lucas et al. */
@@ -342,9 +343,8 @@ public class Plant : IAgent<PatchLayer>, IPositionable
                 return true;
             }
         }
-// && aveAge >= 4 && 
         return false;
-    }
+    } //Harvestable
 	
 	private bool HarvestMonth()
 	{
@@ -353,7 +353,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
 		else if (MonthsToHarvest.Contains(Month.ToString()))
 			return true;
 		return false; 
-	}
+	} // HarvestMonth
 	
     private bool Burnable(Patch patch, Precipitation moisture)
     {
@@ -372,7 +372,7 @@ public class Plant : IAgent<PatchLayer>, IPositionable
         }
 
         return false;
-    }
+    } //Burnable
 
     #endregion
 }

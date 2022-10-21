@@ -11,19 +11,12 @@ using Mars.Interfaces.Layers;
 using Mars.Interfaces.Environments;
 using Mars.Numerics.Statistics;
 
-
 namespace Honeybush.Model;
 
-/// <summary>
-///     A simple geo layer that provides access to the x,y values of a csv input.
-/// </summary>
-// [PropertyDescription]
-// public PrecipitationLayer PrecipitationLayer { get; set; }
-//investigate the above
 public class PatchLayer : AbstractLayer
 {
-    private readonly int Height = 1;
-    private readonly int Width = 1;
+    private readonly int Height = 2;
+    private readonly int Width = 2;
     public IAgentManager AgentManager { get; private set; }
     public SpatialHashEnvironment<Plant> PlantEnvironment { get; private set; }
     public GeoHashEnvironment<Patch> PatchEnvironment { get; private set; }
@@ -44,12 +37,14 @@ public class PatchLayer : AbstractLayer
         return true;
     } //initlayer
 	
+	//method to find a random position in the grid environment for plants
 	public Position FindRandomPlantPosition()
 	{
 		var random = new Random();
 		return Position.CreatePosition(random.Next(Width), random.Next(Height));
 	}
 	
+	//find an appropriate patch -> used for intialisation
 	public Patch FindPatchForID(int plant_id)
     {
 		var target = Patches.Where(patch => patch.havePlants
@@ -59,6 +54,7 @@ public class PatchLayer : AbstractLayer
         throw new ArgumentException($"No patch for ID {plant_id}");
     }
 	
+	//check that a patch is healthy and old enough overall
 	public void checkHarvestable(Patch patch)
     {
 		foreach (var plant in Plants)
