@@ -1,6 +1,6 @@
 # Documentation for HoneybushModel
 
-This ABM attempts to model the growing cycle of honeybush (specifically the bergtee species) in the Kouga Mountains at a Melmont Farm, Nooitgedacht. 
+This ABM attempts to model the growing cycle of honeybush (specifically the bergtee species) in the Kouga Mountains at Melmont Farm, Nooitgedacht. 
 
 ## Project structure
 
