@@ -33,7 +33,8 @@ The model can be configured via a JavaScript Object Notation (JSON) file called 
 - `console`: a boolean flag that, if set to `true`, prompts the simulation framework to send output a progress bar.
 - `agents`: the agent types that should be included in the simulation
   - The number of agents can be changed here by updating the value of the `count` key of each agent type. 
-  - This should not be changed as 44 patches will always be simulated as there will always be at least 44 patches with relevant data in this model.
+  - To compute results for 44 patches, the 'count' varaible should be removed from the patch agent.
+  - Verification and validation simulated one patch.  
   - This is also where certain parameters of an agent are given values. 
 
 ## Model setup and execution
